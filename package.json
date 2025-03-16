@@ -42,6 +42,7 @@
     "@react-spring/three": "^9.7.3",
     "@react-three/drei": "^9.88.0",
     "@react-three/fiber": "^8.15.11",
+    "@splinetool/runtime": "^1.9.79",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

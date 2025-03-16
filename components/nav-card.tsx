@@ -10,7 +10,7 @@ interface NavCardProps {
   label: string
   emoji: string
   images: string[]
-  onClick: () => void
+  onClick: (e: React.MouseEvent) => void
   index: number
   isDarkMode: boolean
   onHoverStart?: () => void
@@ -249,56 +249,32 @@ export default function NavCard({
             transform: 'translateZ(20px)'
           }}
         >
-          {/* Main image with scale effect */}
-          <motion.div 
-            className="relative w-full aspect-square mb-4 rounded-xl overflow-hidden"
-            style={{ 
-              scale: imageScale,
-              transformStyle: 'preserve-3d',
-              transform: 'translateZ(40px)',
-              boxShadow: isHovered
-                ? isDarkMode
-                  ? '0 0 20px 5px rgba(0, 0, 0, 0.3), 0 0 10px 2px rgba(59, 130, 246, 0.3)'
-                  : '0 0 20px 5px rgba(0, 0, 0, 0.1), 0 0 10px 2px rgba(168, 85, 247, 0.2)'
-                : 'none'
-            }}
-          >
-            {images && images.length > 0 && (
-              <Image
-                src={images[0]}
-                alt={label}
-                fill
-                className="object-cover transition-transform duration-700"
-                style={{ 
-                  transform: isHovered ? 'scale(1.1)' : 'scale(1)',
-                  filter: isHovered 
-                    ? isDarkMode 
-                      ? 'brightness(1.2) contrast(1.1)' 
-                      : 'brightness(1.1) contrast(1.05)'
-                    : 'none'
-                }}
-              />
-            )}
-            
-            {/* Shine effect overlay */}
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-tr from-transparent via-white to-transparent opacity-0"
-              animate={{ 
-                opacity: isHovered ? [0, 0.3, 0] : 0,
-                left: isHovered ? ['-100%', '100%', '100%'] : '-100%',
-                top: isHovered ? ['-100%', '100%', '100%'] : '-100%',
+          {/* Large centered emoji instead of image */}
+          <div className="flex items-center justify-center w-full h-32 mb-4">
+              <motion.div
+              className="text-8xl md:text-9xl"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 * index, duration: 0.5 }}
+              whileHover={{ 
+                scale: 1.2,
+                rotate: [0, -5, 5, -5, 0],
+                transition: { duration: 0.5 }
               }}
-              transition={{ 
-                duration: 1.5,
-                ease: "easeInOut",
-                repeat: isHovered ? Infinity : 0,
-                repeatDelay: 3
+                style={{
+                filter: isHovered ? 
+                  `drop-shadow(0 0 8px ${isDarkMode ? 'rgba(59, 130, 246, 0.7)' : 'rgba(168, 85, 247, 0.5)'})` : 
+                  'none',
+                transformStyle: 'preserve-3d',
+                transform: 'translateZ(40px)'
               }}
-            />
-          </motion.div>
-          
+            >
+              {emoji}
+              </motion.div>
+        </div>
+
           {/* Label with 3D effect */}
-          <motion.div 
+        <motion.div
             className="mt-auto"
             style={{ 
               transformStyle: 'preserve-3d',
@@ -319,34 +295,6 @@ export default function NavCard({
             >
               {label}
             </motion.h3>
-          </motion.div>
-          
-          {/* Emoji indicator with bounce animation */}
-          <motion.div
-            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full"
-            style={{ 
-              backgroundColor: isDarkMode 
-                ? 'rgba(30, 64, 175, 0.3)' 
-                : 'rgba(126, 34, 206, 0.2)',
-              boxShadow: isHovered
-                ? isDarkMode
-                  ? '0 0 10px 2px rgba(59, 130, 246, 0.5)'
-                  : '0 0 10px 2px rgba(168, 85, 247, 0.4)'
-                : 'none',
-              transformStyle: 'preserve-3d',
-              transform: 'translateZ(50px)'
-            }}
-            animate={{ 
-              scale: isHovered ? 1.2 : 1,
-              rotate: isHovered ? 10 : 0
-            }}
-            transition={{ 
-              type: "spring",
-              stiffness: 300,
-              damping: 10
-            }}
-          >
-            <span className="text-lg">{emoji}</span>
           </motion.div>
         </motion.div>
       </motion.div>

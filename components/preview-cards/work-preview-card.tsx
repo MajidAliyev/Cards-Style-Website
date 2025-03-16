@@ -1,13 +1,16 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Briefcase, Calendar, MapPin, ArrowRight } from "lucide-react"
+import { Briefcase, Calendar, MapPin, GraduationCap, Building } from "lucide-react"
+import { useTranslation } from 'react-i18next'
 
 interface WorkPreviewCardProps {
   isDarkMode: boolean
 }
 
 export default function WorkPreviewCard({ isDarkMode }: WorkPreviewCardProps) {
+  const { t } = useTranslation();
+  
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -30,6 +33,8 @@ export default function WorkPreviewCard({ isDarkMode }: WorkPreviewCardProps) {
       period: "2022 - Present",
       location: "Schliengen",
       color: isDarkMode ? "border-blue-500/30" : "border-blue-500/20",
+      icon: <Building size={12} />,
+      type: "Work Experience"
     },
     {
       company: "AZERTUFF LTD",
@@ -37,6 +42,8 @@ export default function WorkPreviewCard({ isDarkMode }: WorkPreviewCardProps) {
       period: "2021 - Present",
       location: "Freiburg",
       color: isDarkMode ? "border-purple-500/30" : "border-purple-500/20",
+      icon: <Briefcase size={12} />,
+      type: "Work Experience"
     },
     {
       company: "IU Internationale Hochschule",
@@ -44,6 +51,8 @@ export default function WorkPreviewCard({ isDarkMode }: WorkPreviewCardProps) {
       period: "Starting April 2025",
       location: "Freiburg",
       color: isDarkMode ? "border-pink-500/30" : "border-pink-500/20",
+      icon: <GraduationCap size={12} />,
+      type: "Education"
     },
   ]
 
@@ -62,6 +71,15 @@ export default function WorkPreviewCard({ isDarkMode }: WorkPreviewCardProps) {
           <p className={`text-sm ${isDarkMode ? "text-green-400" : "text-green-600"}`}>Professional Journey</p>
         </div>
       </motion.div>
+
+      <motion.p 
+        className={`mt-4 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`} 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        My professional experience spans web development, marketing, and entrepreneurship.
+      </motion.p>
 
       <motion.div className="mt-6 space-y-4" variants={container} initial="hidden" animate="show">
         <div className="relative">
@@ -94,7 +112,6 @@ export default function WorkPreviewCard({ isDarkMode }: WorkPreviewCardProps) {
                 {/* Content */}
                 <motion.div
                   className={`rounded-xl border-l-4 p-4 ${exp.color} ${isDarkMode ? "bg-gray-800" : "bg-gray-100"}`}
-                  whileHover={{ x: 10 }}
                 >
                   <h4 className="font-bold">{exp.company}</h4>
                   <p className={`text-sm ${isDarkMode ? "text-green-400" : "text-green-600"}`}>{exp.role}</p>
@@ -108,6 +125,10 @@ export default function WorkPreviewCard({ isDarkMode }: WorkPreviewCardProps) {
                       <MapPin size={12} />
                       <span>{exp.location}</span>
                     </div>
+                    <div className="flex items-center gap-1">
+                      {exp.icon}
+                      <span>{exp.type}</span>
+                    </div>
                   </div>
                 </motion.div>
               </motion.div>
@@ -117,20 +138,14 @@ export default function WorkPreviewCard({ isDarkMode }: WorkPreviewCardProps) {
       </motion.div>
 
       <motion.div
-        className="mt-6 flex justify-center"
+        className={`mt-6 rounded-lg p-3 text-center text-sm ${
+          isDarkMode ? "bg-green-900/20 text-green-300" : "bg-green-100 text-green-800"
+        }`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
       >
-        <motion.button
-          className={`flex items-center rounded-full px-6 py-2 ${
-            isDarkMode ? "bg-green-600 text-white hover:bg-green-700" : "bg-green-500 text-white hover:bg-green-600"
-          }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          View Full Resume <ArrowRight size={16} className="ml-2" />
-        </motion.button>
+        Over 3 years of professional experience in web development and digital marketing
       </motion.div>
     </div>
   )

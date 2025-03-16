@@ -16,6 +16,9 @@ import { useTranslation } from 'react-i18next'
 import I18nProvider from "@/components/i18n-provider"
 import PortalTransition from "@/components/portal-transition"
 import TopNotchPreview from "@/components/top-notch-preview"
+import { Button } from "@/components/ui/button"
+import MagneticElement from "@/components/magnetic-element"
+import SplineBackground from "@/components/spline-background"
 
 // Wrap the Home component with I18nProvider
 const HomePage = () => {
@@ -25,11 +28,13 @@ const HomePage = () => {
   const [language, setLanguage] = useState("en") // Default language is English
   const [isLoading, setIsLoading] = useState(true)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [activeCardBg, setActiveCardBg] = useState('')
   const [activeCardGlow, setActiveCardGlow] = useState('')
   const [showHeroImage, setShowHeroImage] = useState(true)
+  const [clickPosition, setClickPosition] = useState<{ x: number; y: number } | null>(null)
+  const [showSplineBackground, setShowSplineBackground] = useState(false)
   const backgroundControls = useAnimation();
   const heroImageControls = useAnimation();
+  const glowControls = useAnimation();
 
   // Refs for interactive elements
   const mainRef = useRef<HTMLDivElement>(null)
@@ -83,22 +88,26 @@ const HomePage = () => {
   }, [])
 
   // Type guard for translations
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  
+  // Update i18n language when language state changes
+  useEffect(() => {
+    if (i18n.language !== language) {
+      i18n.changeLanguage(language);
+    }
+  }, [language, i18n]);
 
-  const closeModal = () => setActiveModal(null)
+  const closeModal = () => {
+    setActiveModal(null)
+    setClickPosition(null) // Reset click position when closing modal
+  }
 
   const handleHoverStart = (id: string) => {
-    // Map nav card label to preview ID
-    const previewMap: Record<string, string> = {
-      about: "about",
-      skills: "skills",
-      portfolio: "portfolio",
-      work: "work",
-      contact: "contact",
-    }
-
-    setActivePreview(previewMap[id] || id)
-    setShowHeroImage(false)
+    // Since we're now using explicit IDs, we don't need the mapping
+    console.log("Hover start with ID:", id);
+    
+    setActivePreview(id);
+    setShowHeroImage(false);
   }
 
   const handleHoverEnd = () => {
@@ -107,61 +116,53 @@ const HomePage = () => {
   }
 
   // Open modal with portal effect
-  const openModal = (modalType: string) => {
+  const openModal = (modalType: string, event: React.MouseEvent) => {
+    // Store the click position for the zoom effect
+    setClickPosition({ x: event.clientX, y: event.clientY })
     setActiveModal(modalType)
   }
   
-  // Updated navItems with simplified onClick handlers
+  // Updated navItems with simplified onClick handlers and explicit IDs
   const navItems = [
     {
-      label: t('about'),
+      id: "about",
+      label: t('navItems.about'),
       emoji: '👨‍💻',
       images: ['/images/about.png'],
-      bgColor: '#FF5A5F',
-      darkBgColor: '#8B3E40',
-      glowColor: '#FF8A8F',
-      darkGlowColor: '#FF5A5F',
-      onClick: () => openModal('about')
+      glowColor: isDarkMode ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.6)',
+      onClick: (e: React.MouseEvent) => openModal('about', e)
     },
     {
-      label: t('skills'),
+      id: "skills",
+      label: t('navItems.skills'),
       emoji: '🧠',
       images: ['/images/skills.png'],
-      bgColor: '#56CCF2',
-      darkBgColor: '#2D7A9E',
-      glowColor: '#7FDFFF',
-      darkGlowColor: '#56CCF2',
-      onClick: () => openModal('skills')
+      glowColor: isDarkMode ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.6)',
+      onClick: (e: React.MouseEvent) => openModal('skills', e)
     },
     {
-      label: t('portfolio'),
+      id: "portfolio",
+      label: t('navItems.portfolio'),
       emoji: '🎨',
       images: ['/images/portfolio.png'],
-      bgColor: '#BB6BD9',
-      darkBgColor: '#6A3B7D',
-      glowColor: '#D48EF6',
-      darkGlowColor: '#BB6BD9',
-      onClick: () => openModal('portfolio')
+      glowColor: isDarkMode ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.6)',
+      onClick: (e: React.MouseEvent) => openModal('portfolio', e)
     },
     {
-      label: t('work'),
+      id: "work",
+      label: t('navItems.work'),
       emoji: '💼',
       images: ['/images/work.png'],
-      bgColor: '#F2994A',
-      darkBgColor: '#8F5B2C',
-      glowColor: '#FFBB7D',
-      darkGlowColor: '#F2994A',
-      onClick: () => openModal('work')
+      glowColor: isDarkMode ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.6)',
+      onClick: (e: React.MouseEvent) => openModal('work', e)
     },
     {
-      label: t('contact'),
-      emoji: '📬',
+      id: "contact",
+      label: t('navItems.contact'),
+      emoji: '📱',
       images: ['/images/contact.png'],
-      bgColor: '#6FCF97',
-      darkBgColor: '#3E7A59',
-      glowColor: '#A0EBBE',
-      darkGlowColor: '#6FCF97',
-      onClick: () => openModal('contact')
+      glowColor: isDarkMode ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.6)',
+      onClick: (e: React.MouseEvent) => openModal('contact', e)
     }
   ]
 
@@ -172,6 +173,29 @@ const HomePage = () => {
     const activeItem = navItems.find(item => item.label.toLowerCase() === activePreview);
     return activeItem?.images[0] || null;
   }
+
+  // Animate glow effect when a card is hovered
+  useEffect(() => {
+    if (activeCardGlow) {
+      glowControls.start({
+        opacity: [0.7, 1, 0.7],
+        scale: [0.95, 1.05, 0.95],
+        transition: {
+          opacity: { duration: 2, repeat: Infinity, repeatType: "reverse" },
+          scale: { duration: 3, repeat: Infinity, repeatType: "reverse" }
+        }
+      });
+    }
+  }, [activeCardGlow, glowControls]);
+
+  // Show Spline background after initial load to prevent performance issues
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplineBackground(true);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   if (isLoading) {
     return (
@@ -213,6 +237,7 @@ const HomePage = () => {
             ✨
           </motion.div>
         </motion.div>
+        <div className="ml-4 text-xl font-medium">{t('ui.loading')}</div>
       </div>
     )
   }
@@ -222,74 +247,78 @@ const HomePage = () => {
       ref={mainRef}
       className={`flex min-h-screen flex-col items-center justify-between p-4 md:p-8 lg:p-12 relative overflow-hidden transition-colors duration-700 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`} 
       style={{
-        backgroundColor: activeCardBg ? activeCardBg : (isDarkMode ? '#121212' : '#f8f8f8'),
-        boxShadow: activeCardGlow ? `0 0 200px 100px ${activeCardGlow}` : 'none',
-        transition: 'background-color 0.7s ease, box-shadow 0.7s ease'
+        backgroundColor: isDarkMode ? '#121212' : '#f8f8f8',
       }}
     >
+      {/* Spline 3D Background */}
+      {showSplineBackground && <SplineBackground isDarkMode={isDarkMode} />}
+
+      {/* Animated background gradient */}
+      <motion.div
+        className="absolute inset-0 z-0 opacity-30"
+        animate={backgroundControls}
+        initial={{ opacity: 0 }}
+        transition={{ duration: 1 }}
+      >
+        <div
+          className={`absolute inset-0 ${
+            isDarkMode
+              ? "bg-gradient-to-br from-blue-900/20 via-gray-900 to-purple-900/20"
+              : "bg-gradient-to-br from-blue-100 via-white to-purple-100"
+          }`}
+        />
+      </motion.div>
+
+      {/* Animated glow effect for cards */}
+      {activeCardGlow && (
+        <motion.div
+          className="pointer-events-none absolute inset-0 z-0"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            background: `radial-gradient(circle at 50% 50%, ${activeCardGlow} 0%, transparent 70%)`,
+            filter: 'blur(40px)',
+          }}
+        />
+      )}
+
+      {/* Floating particles */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className={`absolute rounded-full ${
+              isDarkMode ? "bg-white" : "bg-gray-800"
+            }`}
+            style={{
+              width: Math.random() * 4 + 1,
+              height: Math.random() * 4 + 1,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              opacity: Math.random() * 0.3,
+            }}
+            animate={{
+              y: [0, Math.random() * -100 - 50],
+              x: [0, (Math.random() - 0.5) * 50],
+              opacity: [Math.random() * 0.3, 0],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              repeatType: "loop",
+            }}
+          />
+        ))}
+      </div>
+
       {/* Add TopNotchPreview before the background gradient */}
       <TopNotchPreview 
         isVisible={!!activePreview && !activeModal} 
         preview={activePreview} 
         isDarkMode={isDarkMode}
       />
-
-      {/* Animated background gradient */}
-      <motion.div 
-        className="absolute inset-0 pointer-events-none z-0"
-        initial={{ opacity: 0, scale: 1.2 }}
-        animate={backgroundControls}
-      >
-        <div className={`absolute inset-0 ${
-          isDarkMode 
-            ? 'bg-gradient-radial from-gray-800/30 via-gray-900/50 to-black/80' 
-            : 'bg-gradient-radial from-white/80 via-gray-50/50 to-gray-100/80'
-        }`} />
-        
-        {/* Subtle animated patterns */}
-        <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="smallGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-              <path 
-                d="M 20 0 L 0 0 0 20" 
-                fill="none" 
-                stroke={isDarkMode ? "rgba(59, 130, 246, 0.2)" : "rgba(168, 85, 247, 0.2)"} 
-                strokeWidth="0.5"
-              />
-            </pattern>
-            <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
-              <rect width="80" height="80" fill="url(#smallGrid)" />
-              <path 
-                d="M 80 0 L 0 0 0 80" 
-                fill="none" 
-                stroke={isDarkMode ? "rgba(59, 130, 246, 0.3)" : "rgba(168, 85, 247, 0.3)"} 
-                strokeWidth="1"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-        
-        {/* Animated gradient overlay */}
-        <motion.div
-          className="absolute inset-0"
-          style={{
-            background: isDarkMode 
-              ? 'radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 70%)' 
-              : 'radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 70%)'
-          }}
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.5, 0.7, 0.5],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeInOut"
-          }}
-        />
-        </motion.div>
 
       {/* Header with language and theme controls only */}
       <div className="w-full flex justify-end items-start z-10">
@@ -299,260 +328,304 @@ const HomePage = () => {
         setLanguage={setLanguage}
         isDarkMode={isDarkMode}
           />
-          <button
+          <Button
             type="button"
             onClick={() => setIsDarkMode(!isDarkMode)}
             className={`h-8 w-8 rounded-full flex items-center justify-center transition-colors ${
               isDarkMode ? 'bg-gray-800 text-yellow-300' : 'bg-gray-200 text-gray-800'
             }`}
-            aria-label="Toggle dark mode"
+            aria-label={t('ui.darkMode')}
+            magnetic
+            magneticStrength={5}
+            magneticDistance={80}
+            size="icon"
           >
             {isDarkMode ? '☀️' : '🌙'}
-          </button>
-        </div>
-          </div>
-
-      {/* Hero section with large image */}
-      <div className="flex flex-col items-center justify-center flex-grow w-full max-w-4xl mx-auto my-8 relative z-10">
-        <div className="relative mb-8">
-          <motion.h1 
-            className="text-6xl md:text-7xl font-bold text-center mb-4 relative"
-            style={{ 
-              textShadow: isDarkMode 
-                ? '0 0 15px rgba(255, 255, 255, 0.5)' 
-                : '0 0 15px rgba(0, 0, 0, 0.2)'
-            }}
-          >
-            {Array.from("Majid Aliyev").map((char, index) => (
-              <motion.span
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  delay: index * 0.05,
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 10
-                }}
-                className="inline-block"
-              >
-                {char === " " ? "\u00A0" : char}
-              </motion.span>
-            ))}
-            <motion.div
-              className="absolute -bottom-2 left-0 h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{
-                delay: 0.8, 
-                duration: 0.8,
-                ease: "easeOut"
-              }}
-            />
-          </motion.h1>
-        </div>
-
-        {/* Contact links */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.5 }}
-          className="flex flex-wrap justify-center gap-4 mb-8"
-        >
-            <motion.a
-              href="mailto:alyvmecid@gmail.com"
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm ${
-              isDarkMode 
-                ? 'bg-blue-900/30 text-blue-200 hover:bg-blue-800/50' 
-                : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-            } transition-colors`}
-            whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-          >
-            <Mail size={14} />
-            alyvmecid@gmail.com
-            </motion.a>
-          
-            <motion.a
-              href="tel:+4915737980174"
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm ${
-              isDarkMode 
-                ? 'bg-purple-900/30 text-purple-200 hover:bg-purple-800/50' 
-                : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
-            } transition-colors`}
-            whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-          >
-            <Phone size={14} />
-            +49 157 37980174
-          </motion.a>
-          
-          <motion.div
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm ${
-              isDarkMode 
-                ? 'bg-pink-900/30 text-pink-200' 
-                : 'bg-pink-100 text-pink-800'
-            }`}
-            whileHover={{ scale: 1.05 }}
-          >
-            <MapPin size={14} />
-            Sundgauallee 50, 79110 Freiburg
-          </motion.div>
-        </motion.div>
-        
-        {/* Hero image or preview */}
-        <div className="relative w-64 h-64 md:w-80 md:h-80 mb-8">
-          <AnimatePresence mode="wait">
-            {showHeroImage && (
-              <motion.div
-                key="hero-image"
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={heroImageControls}
-                exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="absolute inset-0 rounded-full overflow-hidden"
-              >
-                <Image
-                  src="/images/about.png"
-                  alt="Majid Aliyev"
-                  fill
-                  className="object-cover"
-                />
-            <motion.div
-                  className="absolute inset-0 rounded-full"
-              style={{
-                boxShadow: isDarkMode
-                      ? 'inset 0 0 30px 10px rgba(0, 0, 0, 0.5), 0 0 30px 10px rgba(59, 130, 246, 0.3)' 
-                      : 'inset 0 0 30px 10px rgba(0, 0, 0, 0.2), 0 0 30px 10px rgba(168, 85, 247, 0.2)'
-                  }}
-                />
-                
-                {/* Animated glow effect */}
-                <motion.div 
-                  className="absolute inset-0 rounded-full"
-                  style={{ 
-                    boxShadow: isDarkMode 
-                      ? '0 0 40px 10px rgba(59, 130, 246, 0.3)' 
-                      : '0 0 40px 10px rgba(168, 85, 247, 0.3)'
-                  }}
-                  animate={{
-                    boxShadow: isDarkMode 
-                      ? ['0 0 30px 5px rgba(59, 130, 246, 0.2)', '0 0 50px 15px rgba(59, 130, 246, 0.4)', '0 0 30px 5px rgba(59, 130, 246, 0.2)']
-                      : ['0 0 30px 5px rgba(168, 85, 247, 0.2)', '0 0 50px 15px rgba(168, 85, 247, 0.4)', '0 0 30px 5px rgba(168, 85, 247, 0.2)']
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    repeatType: "reverse"
-                  }}
-                />
-              </motion.div>
-            )}
-            
-            {activePreview && !showHeroImage && (
-              <motion.div
-                key="preview-image"
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-                className="absolute inset-0 rounded-full overflow-hidden"
-              >
-                <Image
-                  src={getPreviewImage() || "/images/about.png"}
-                  alt={activePreview}
-                  fill
-                  className="object-cover"
-                />
-                <motion.div 
-                  className="absolute inset-0 rounded-full"
-                  style={{ 
-                    boxShadow: isDarkMode 
-                      ? 'inset 0 0 30px 10px rgba(0, 0, 0, 0.5), 0 0 30px 10px rgba(59, 130, 246, 0.3)' 
-                      : 'inset 0 0 30px 10px rgba(0, 0, 0, 0.2), 0 0 30px 10px rgba(168, 85, 247, 0.2)'
-                  }}
-                />
-                
-                {/* Animated glow effect */}
-                <motion.div 
-                  className="absolute inset-0 rounded-full"
-                  style={{ 
-                    boxShadow: isDarkMode 
-                      ? '0 0 40px 10px rgba(59, 130, 246, 0.3)' 
-                      : '0 0 40px 10px rgba(168, 85, 247, 0.3)'
-                  }}
-                  animate={{
-                    boxShadow: isDarkMode 
-                      ? ['0 0 30px 5px rgba(59, 130, 246, 0.2)', '0 0 50px 15px rgba(59, 130, 246, 0.4)', '0 0 30px 5px rgba(59, 130, 246, 0.2)']
-                      : ['0 0 30px 5px rgba(168, 85, 247, 0.2)', '0 0 50px 15px rgba(168, 85, 247, 0.4)', '0 0 30px 5px rgba(168, 85, 247, 0.2)']
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    repeatType: "reverse"
-                  }}
-                />
-                
-                {/* Preview label */}
-                <motion.div
-                  className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-1 rounded-full text-sm font-medium ${
-                    isDarkMode ? 'bg-gray-800/80 text-white' : 'bg-white/80 text-gray-900'
-                  }`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  {activePreview.charAt(0).toUpperCase() + activePreview.slice(1)}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </Button>
         </div>
       </div>
+
+      {/* Hero section with large image and overlapping text */}
+      <div className="flex flex-col items-center justify-center flex-grow w-full max-w-6xl mx-auto relative z-10">
+        <AnimatePresence mode="wait">
+          {(!activePreview || (activePreview && !activeModal)) && (
+            <motion.div
+              className="flex flex-col items-center w-full"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: activePreview ? 0 : 1 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* Image positioned behind text */}
+              <div className="absolute top-[10%] sm:top-[20%] left-0 right-0 w-full flex justify-center items-center z-0">
+                <motion.div
+                  className="relative w-full max-w-[800px] h-[300px] sm:h-[400px] md:h-[600px]"
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ 
+                    type: "spring", 
+                    stiffness: 100, 
+                    damping: 20,
+                    delay: 0.8
+                  }}
+                >
+                  {/* Backdrop glow */}
+                  <motion.div
+                    className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[90%] h-[70%] rounded-[100%] blur-[60px] opacity-50"
+                    style={{ 
+                      background: isDarkMode 
+                        ? 'radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(147, 51, 234, 0.3) 50%, rgba(236, 72, 153, 0.2) 100%)' 
+                        : 'radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.15) 50%, rgba(236, 72, 153, 0.1) 100%)'
+                    }}
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: isDarkMode ? [0.5, 0.7, 0.5] : [0.3, 0.5, 0.3]
+                    }}
+                    transition={{ duration: 8, repeat: Infinity, repeatType: "reverse" }}
+                  />
+                  
+                  <Image
+                    src="/images/about.png"
+                    alt="Majid Aliyev"
+                    fill
+                    className="object-contain"
+                    style={{ 
+                      filter: `drop-shadow(0 10px 15px ${isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.2)'})`,
+                      maskImage: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 90%, rgba(0, 0, 0, 0))',
+                      WebkitMaskImage: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 90%, rgba(0, 0, 0, 0))'
+                    }}
+                    priority
+                  />
+                  
+                  {/* Decorative elements - hidden on very small screens */}
+                  <div className="hidden sm:block absolute top-0 left-1/4 w-1 h-20 bg-gradient-to-b from-transparent via-blue-500 to-transparent opacity-50" />
+                  <div className="hidden sm:block absolute top-10 right-1/3 w-1 h-40 bg-gradient-to-b from-transparent via-purple-500 to-transparent opacity-30" />
+                  <div className="hidden sm:block absolute top-20 left-2/3 w-1 h-30 bg-gradient-to-b from-transparent via-pink-500 to-transparent opacity-40" />
+                  
+                  {/* Floating particles - hidden on very small screens */}
+                  <motion.div 
+                    className="hidden sm:block absolute top-1/4 left-1/5 w-2 h-2 rounded-full bg-blue-400"
+                    animate={{ y: [0, -15, 0], opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <motion.div 
+                    className="hidden sm:block absolute top-1/3 right-1/4 w-3 h-3 rounded-full bg-purple-400"
+                    animate={{ y: [0, -20, 0], opacity: [0.3, 0.7, 0.3] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                  />
+                  <motion.div 
+                    className="hidden sm:block absolute bottom-1/4 left-1/3 w-2 h-2 rounded-full bg-pink-400"
+                    animate={{ y: [0, -10, 0], opacity: [0.4, 0.8, 0.4] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                  />
+                </motion.div>
+              </div>
+              
+              {/* Text content positioned on top of image */}
+              <div className="relative z-10 mb-[200px] sm:mb-[250px] md:mb-[350px] mt-4 sm:mt-8 bg-opacity-30 rounded-2xl p-4 sm:p-8">
+                <div className="relative mb-4 sm:mb-8">
+                  <motion.h1 
+                    className="text-4xl sm:text-5xl md:text-7xl font-bold text-center mb-4 relative"
+                    style={{ 
+                      textShadow: isDarkMode 
+                        ? '0 0 15px rgba(255, 255, 255, 0.5)' 
+                        : '0 0 15px rgba(0, 0, 0, 0.2)'
+                    }}
+                  >
+                    {Array.from(t('hero.title')).map((char, index) => (
+                      <motion.span
+                        key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+                        transition={{ 
+                          delay: index * 0.05,
+                          type: "spring",
+                          stiffness: 200,
+                          damping: 10
+                        }}
+                        className="inline-block"
+                      >
+                        {char === " " ? "\u00A0" : char}
+                      </motion.span>
+                    ))}
+                    <motion.div
+                      className="absolute -bottom-2 left-0 h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: "100%" }}
+                      transition={{
+                        delay: 0.8, 
+                        duration: 0.8,
+                        ease: "easeOut"
+                      }}
+                    />
+            </motion.h1>
+                </div>
+
+                {/* Contact links */}
+                <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1, duration: 0.5 }}
+                  className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8"
+                >
+                  <MagneticElement
+                    strength={4}
+                    distance={100}
+                    scale={1.05}
+                  >
+                    <motion.a
+                      href={`mailto:${t('contact.email')}`}
+                      className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm ${
+                        isDarkMode 
+                          ? 'bg-blue-900/50 text-blue-200 hover:bg-blue-800/70' 
+                          : 'bg-blue-100/80 text-blue-800 hover:bg-blue-200/90'
+                      } transition-colors`}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Mail size={12} className="sm:hidden" />
+                      <Mail size={14} className="hidden sm:block" />
+                      <span className="truncate max-w-[120px] sm:max-w-none">{t('contact.email')}</span>
+                    </motion.a>
+                  </MagneticElement>
+                
+                  <MagneticElement
+                    strength={4}
+                    distance={100}
+                    scale={1.05}
+                  >
+                    <motion.a
+                      href={`tel:${t('contact.phone')}`}
+                      className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm ${
+                isDarkMode
+                          ? 'bg-purple-900/50 text-purple-200 hover:bg-purple-800/70' 
+                          : 'bg-purple-100/80 text-purple-800 hover:bg-purple-200/90'
+                      } transition-colors`}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Phone size={12} className="sm:hidden" />
+                      <Phone size={14} className="hidden sm:block" />
+                      <span className="truncate max-w-[120px] sm:max-w-none">{t('contact.phone')}</span>
+                    </motion.a>
+                  </MagneticElement>
+                
+                  <MagneticElement
+                    strength={4}
+                    distance={100}
+                    scale={1.05}
+                  >
+            <motion.div
+                      className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm ${
+                        isDarkMode 
+                          ? 'bg-pink-900/50 text-pink-200' 
+                          : 'bg-pink-100/80 text-pink-800'
+                      }`}
+                    >
+                      <MapPin size={12} className="sm:hidden" />
+                      <MapPin size={14} className="hidden sm:block" />
+                      <span className="truncate max-w-[120px] sm:max-w-none">{t('contact.address')}</span>
+                    </motion.div>
+                  </MagneticElement>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      
+      {/* Animated lines connecting to nav cards */}
+      <div className="w-full max-w-6xl relative z-10 h-[50px] mb-0">
+        <svg className="absolute bottom-0 left-0 w-full h-full opacity-70" viewBox="0 0 1000 50">
+          <motion.path
+            d="M200,50 C200,20 300,20 300,50"
+            stroke={isDarkMode ? "#3b82f6" : "#8b5cf6"}
+            strokeWidth="1"
+            fill="none"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.5, delay: 1.5 }}
+          />
+          <motion.path
+            d="M400,50 C400,10 500,10 500,50"
+            stroke={isDarkMode ? "#8b5cf6" : "#ec4899"}
+            strokeWidth="1"
+            fill="none"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.5, delay: 1.7 }}
+          />
+          <motion.path
+            d="M600,50 C600,20 700,20 700,50"
+            stroke={isDarkMode ? "#ec4899" : "#3b82f6"}
+            strokeWidth="1"
+            fill="none"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.5, delay: 1.9 }}
+          />
+        </svg>
+            </div>
       
       {/* Navigation cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 w-full max-w-6xl z-10">
-        {navItems.map((item, index) => (
-          <NavCard
-            key={index}
-            label={item.label}
-            emoji={item.emoji}
-            images={item.images}
-            onClick={item.onClick}
-            index={index}
-            isDarkMode={isDarkMode}
-            onHoverStart={() => {
-              setActiveCardBg(isDarkMode ? item.darkBgColor : item.bgColor);
-              setActiveCardGlow(isDarkMode ? item.darkGlowColor : item.glowColor);
-              handleHoverStart(item.label.toLowerCase());
-            }}
-            onHoverEnd={() => {
-              setActiveCardBg('');
-              setActiveCardGlow('');
-              handleHoverEnd();
-            }}
-          />
-        ))}
+      <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 w-full max-w-6xl z-10 mt-0">
+              {navItems.map((item, index) => (
+                <NavCard
+                  key={index}
+                  label={item.label}
+                  emoji={item.emoji}
+                  images={item.images}
+                  onClick={item.onClick}
+                  index={index}
+                  isDarkMode={isDarkMode}
+                  onHoverStart={() => {
+                    setActiveCardGlow(item.glowColor);
+                    handleHoverStart(item.id);
+                  }}
+                  onHoverEnd={() => {
+                    setActiveCardGlow('');
+                    handleHoverEnd();
+                  }}
+                />
+              ))}
       </div>
-      
+
       {/* Modals with portal effect */}
-      <PortalTransition isOpen={activeModal === 'about'} isDarkMode={isDarkMode}>
+      <PortalTransition 
+        isOpen={activeModal === 'about'} 
+        isDarkMode={isDarkMode}
+        originPosition={clickPosition}
+      >
         <AboutModal onClose={closeModal} isDarkMode={isDarkMode} language={language} />
       </PortalTransition>
       
-      <PortalTransition isOpen={activeModal === 'skills'} isDarkMode={isDarkMode}>
+      <PortalTransition 
+        isOpen={activeModal === 'skills'} 
+        isDarkMode={isDarkMode}
+        originPosition={clickPosition}
+      >
         <SkillsModal onClose={closeModal} isDarkMode={isDarkMode} language={language} />
       </PortalTransition>
       
-      <PortalTransition isOpen={activeModal === 'portfolio'} isDarkMode={isDarkMode}>
+      <PortalTransition 
+        isOpen={activeModal === 'portfolio'} 
+        isDarkMode={isDarkMode}
+        originPosition={clickPosition}
+      >
         <PortfolioModal onClose={closeModal} isDarkMode={isDarkMode} language={language} />
       </PortalTransition>
       
-      <PortalTransition isOpen={activeModal === 'work'} isDarkMode={isDarkMode}>
+      <PortalTransition 
+        isOpen={activeModal === 'work'} 
+                  isDarkMode={isDarkMode}
+        originPosition={clickPosition}
+      >
         <WorkModal onClose={closeModal} isDarkMode={isDarkMode} language={language} />
       </PortalTransition>
       
-      <PortalTransition isOpen={activeModal === 'contact'} isDarkMode={isDarkMode}>
+      <PortalTransition 
+        isOpen={activeModal === 'contact'} 
+                  isDarkMode={isDarkMode}
+        originPosition={clickPosition}
+      >
         <ContactModal onClose={closeModal} isDarkMode={isDarkMode} language={language} />
       </PortalTransition>
       

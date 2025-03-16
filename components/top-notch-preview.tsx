@@ -8,6 +8,7 @@ import SkillsPreviewCard from "@/components/preview-cards/skills-preview-card"
 import PortfolioPreviewCard from "@/components/preview-cards/portfolio-preview-card"
 import WorkPreviewCard from "@/components/preview-cards/work-preview-card"
 import ContactPreviewCard from "@/components/preview-cards/contact-preview-card"
+import { useTranslation } from 'react-i18next'
 
 interface TopNotchPreviewProps {
   isVisible: boolean
@@ -17,15 +18,25 @@ interface TopNotchPreviewProps {
 
 export default function TopNotchPreview({ isVisible, preview, isDarkMode }: TopNotchPreviewProps) {
   const [mounted, setMounted] = useState(false)
+  const { t, i18n } = useTranslation();
+  const [debugInfo, setDebugInfo] = useState<string>("");
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    // Add debug info to help identify the issue
+    if (preview) {
+      setDebugInfo(`Preview: ${preview}`);
+    } else {
+      setDebugInfo("No preview selected");
+    }
+  }, [preview])
 
   if (!mounted) return null
 
   const getPreviewContent = () => {
-    switch (preview?.toLowerCase()) {
+    if (!preview) return null;
+    
+    switch (preview.toLowerCase()) {
       case "about":
         return <AboutPreviewCard isDarkMode={isDarkMode} />
       case "skills":
@@ -37,9 +48,14 @@ export default function TopNotchPreview({ isVisible, preview, isDarkMode }: TopN
       case "contact":
         return <ContactPreviewCard isDarkMode={isDarkMode} />
       default:
-        return null
+        return <div className="p-4 text-center">Unknown preview type: {preview}</div>
     }
   }
+
+  // If not visible or no preview, don't render anything
+  if (!isVisible || !preview) return null;
+
+  const previewContent = getPreviewContent();
 
   return (
     <AnimatePresence>
@@ -73,6 +89,7 @@ export default function TopNotchPreview({ isVisible, preview, isDarkMode }: TopN
               boxShadow: isDarkMode
                 ? "0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 50px 10px rgba(59, 130, 246, 0.1)"
                 : "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 50px 10px rgba(168, 85, 247, 0.1)",
+              minHeight: "200px" // Ensure minimum height
             }}
           >
             {/* Gradient border */}
@@ -120,7 +137,12 @@ export default function TopNotchPreview({ isVisible, preview, isDarkMode }: TopN
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              {getPreviewContent()}
+              {previewContent || (
+                <div className="p-4 text-center">
+                  <p>No preview content available for: {preview}</p>
+                  <p className="text-sm text-gray-500 mt-2">{debugInfo}</p>
+                </div>
+              )}
             </motion.div>
 
             {/* Decorative elements */}

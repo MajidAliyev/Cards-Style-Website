@@ -2,12 +2,15 @@
 
 import { motion } from "framer-motion"
 import { Code, Palette, Layers, Zap, Star } from "lucide-react"
+import { useTranslation } from 'react-i18next'
 
 interface SkillsPreviewCardProps {
   isDarkMode: boolean
 }
 
 export default function SkillsPreviewCard({ isDarkMode }: SkillsPreviewCardProps) {
+  const { t } = useTranslation();
+  
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -42,8 +45,8 @@ export default function SkillsPreviewCard({ isDarkMode }: SkillsPreviewCardProps
             <Code size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-bold">Skills & Expertise</h3>
-            <p className={`text-sm ${isDarkMode ? "text-purple-400" : "text-purple-600"}`}>Technical Proficiency</p>
+            <h3 className="text-xl font-bold">Skills</h3>
+            <p className={`text-sm ${isDarkMode ? "text-purple-400" : "text-purple-600"}`}>Technical Expertise</p>
           </div>
         </div>
 
@@ -77,8 +80,8 @@ export default function SkillsPreviewCard({ isDarkMode }: SkillsPreviewCardProps
             <Star size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-bold">Core Competencies</h3>
-            <p className={`text-sm ${isDarkMode ? "text-blue-400" : "text-blue-600"}`}>Areas of Expertise</p>
+            <h3 className="text-xl font-bold">Key Skills</h3>
+            <p className={`text-sm ${isDarkMode ? "text-blue-400" : "text-blue-600"}`}>Additional Competencies</p>
           </div>
         </div>
 
@@ -86,7 +89,6 @@ export default function SkillsPreviewCard({ isDarkMode }: SkillsPreviewCardProps
           <motion.div
             className={`flex items-center rounded-xl p-3 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"}`}
             variants={item}
-            whileHover={{ scale: 1.03, x: 5 }}
           >
             <Palette size={18} className={`mr-2 ${isDarkMode ? "text-pink-400" : "text-pink-500"}`} />
             <span className="text-sm">Web Design</span>
@@ -95,7 +97,6 @@ export default function SkillsPreviewCard({ isDarkMode }: SkillsPreviewCardProps
           <motion.div
             className={`flex items-center rounded-xl p-3 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"}`}
             variants={item}
-            whileHover={{ scale: 1.03, x: 5 }}
           >
             <Code size={18} className={`mr-2 ${isDarkMode ? "text-blue-400" : "text-blue-500"}`} />
             <span className="text-sm">IT Support</span>
@@ -104,7 +105,6 @@ export default function SkillsPreviewCard({ isDarkMode }: SkillsPreviewCardProps
           <motion.div
             className={`flex items-center rounded-xl p-3 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"}`}
             variants={item}
-            whileHover={{ scale: 1.03, x: 5 }}
           >
             <Layers size={18} className={`mr-2 ${isDarkMode ? "text-amber-400" : "text-amber-500"}`} />
             <span className="text-sm">Branding</span>
@@ -113,7 +113,6 @@ export default function SkillsPreviewCard({ isDarkMode }: SkillsPreviewCardProps
           <motion.div
             className={`flex items-center rounded-xl p-3 ${isDarkMode ? "bg-gray-800" : "bg-gray-100"}`}
             variants={item}
-            whileHover={{ scale: 1.03, x: 5 }}
           >
             <Zap size={18} className={`mr-2 ${isDarkMode ? "text-green-400" : "text-green-500"}`} />
             <span className="text-sm">Marketing</span>
@@ -123,7 +122,6 @@ export default function SkillsPreviewCard({ isDarkMode }: SkillsPreviewCardProps
         <motion.div
           className={`mt-6 rounded-xl p-4 ${isDarkMode ? "bg-gray-800/50" : "bg-gray-100"}`}
           variants={item}
-          whileHover={{ y: -5 }}
         >
           <p className="text-center text-sm">
             <span className={isDarkMode ? "text-purple-400" : "text-purple-600"}>Applying for: </span>

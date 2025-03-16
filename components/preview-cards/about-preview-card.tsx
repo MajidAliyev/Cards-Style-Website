@@ -3,12 +3,15 @@
 import { motion } from "framer-motion"
 import { User, Heart, MapPin, Briefcase, Coffee } from "lucide-react"
 import Image from "next/image"
+import { useTranslation } from 'react-i18next'
 
 interface AboutPreviewCardProps {
   isDarkMode: boolean
 }
 
 export default function AboutPreviewCard({ isDarkMode }: AboutPreviewCardProps) {
+  const { t } = useTranslation();
+  
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -38,14 +41,13 @@ export default function AboutPreviewCard({ isDarkMode }: AboutPreviewCardProps) 
           <div>
             <h3 className="text-xl font-bold">About Me</h3>
             <p className={`text-sm ${isDarkMode ? "text-blue-400" : "text-blue-600"}`}>
-              Web Developer & Marketing Manager
+              Web Developer & Designer
             </p>
           </div>
         </div>
 
         <motion.p className={`mt-4 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`} variants={item}>
-          I'm Majid Aliyev, a passionate web developer and marketing specialist based in Freiburg. I combine technical
-          expertise with creative design to build engaging digital experiences.
+          I'm a passionate web developer and designer with experience in creating modern, responsive websites and applications.
         </motion.p>
 
         <motion.div className="mt-4 grid grid-cols-2 gap-2" variants={item}>
@@ -72,7 +74,7 @@ export default function AboutPreviewCard({ isDarkMode }: AboutPreviewCardProps) 
         <div className="relative h-40 w-full max-w-md overflow-hidden rounded-xl">
           <Image
             src="/placeholder.svg?height=160&width=400&text=Majid+Aliyev"
-            alt="About Me"
+            alt="About Majid Aliyev"
             fill
             className="object-cover"
           />
@@ -83,20 +85,17 @@ export default function AboutPreviewCard({ isDarkMode }: AboutPreviewCardProps) 
           />
 
           <motion.div
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            <motion.button
-              className={`rounded-full px-6 py-2 backdrop-blur-sm ${
-                isDarkMode ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/10 text-black hover:bg-black/20"
-              }`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              View Full Profile
-            </motion.button>
+            <div className={`rounded-lg px-4 py-2 backdrop-blur-sm ${
+              isDarkMode ? "bg-black/40 text-white" : "bg-white/40 text-black"
+            }`}>
+              <p className="text-sm font-medium">Professional Background</p>
+              <p className="text-xs mt-1 opacity-80">Web Development & Digital Marketing</p>
+            </div>
           </motion.div>
         </div>
       </motion.div>

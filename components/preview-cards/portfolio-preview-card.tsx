@@ -1,14 +1,17 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Briefcase, ArrowRight } from "lucide-react"
+import { Briefcase, Code, Palette, ShoppingBag } from "lucide-react"
 import Image from "next/image"
+import { useTranslation } from 'react-i18next'
 
 interface PortfolioPreviewCardProps {
   isDarkMode: boolean
 }
 
 export default function PortfolioPreviewCard({ isDarkMode }: PortfolioPreviewCardProps) {
+  const { t } = useTranslation();
+  
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -29,32 +32,20 @@ export default function PortfolioPreviewCard({ isDarkMode }: PortfolioPreviewCar
       title: "Frauenarztpraxis Website",
       category: "Web Dev",
       image: "/placeholder.svg?height=120&width=200&text=Medical+Website",
+      icon: <Code size={14} />
     },
     {
       title: "AZERTUFF Shopify",
       category: "E-commerce",
       image: "/placeholder.svg?height=120&width=200&text=Shopify+Store",
+      icon: <ShoppingBag size={14} />
     },
     {
       title: "Instagram Campaigns",
       category: "Social Media",
       image: "/placeholder.svg?height=120&width=200&text=Instagram",
-    },
-    {
-      title: "Database Management",
-      category: "IT Support",
-      image: "/placeholder.svg?height=120&width=200&text=Database",
-    },
-    {
-      title: "Content Creation",
-      category: "Marketing",
-      image: "/placeholder.svg?height=120&width=200&text=Content",
-    },
-    {
-      title: "Branding Strategy",
-      category: "Marketing",
-      image: "/placeholder.svg?height=120&width=200&text=Branding",
-    },
+      icon: <Palette size={14} />
+    }
   ]
 
   return (
@@ -68,13 +59,22 @@ export default function PortfolioPreviewCard({ isDarkMode }: PortfolioPreviewCar
           <Briefcase size={24} />
         </div>
         <div>
-          <h3 className="text-xl font-bold">Portfolio Highlights</h3>
-          <p className={`text-sm ${isDarkMode ? "text-pink-400" : "text-pink-600"}`}>Featured Projects</p>
+          <h3 className="text-xl font-bold">Portfolio</h3>
+          <p className={`text-sm ${isDarkMode ? "text-pink-400" : "text-pink-600"}`}>Recent Projects</p>
         </div>
       </motion.div>
 
+      <motion.p 
+        className={`mt-4 ${isDarkMode ? "text-gray-300" : "text-gray-600"}`} 
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        A selection of my recent web development and design projects showcasing my skills and experience.
+      </motion.p>
+
       <motion.div
-        className="mt-6 grid gap-6 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3"
+        className="mt-6 grid gap-4 md:grid-cols-3"
         variants={container}
         initial="hidden"
         animate="show"
@@ -82,46 +82,46 @@ export default function PortfolioPreviewCard({ isDarkMode }: PortfolioPreviewCar
         {projects.map((project, index) => (
           <motion.div
             key={project.title}
-            className={`group overflow-hidden rounded-xl ${isDarkMode ? "bg-gray-800" : "bg-gray-100"}`}
+            className={`overflow-hidden rounded-xl ${isDarkMode ? "bg-gray-800" : "bg-gray-100"}`}
             variants={item}
-            whileHover={{ y: -5 }}
           >
-            <div className="relative h-32 overflow-hidden">
+            <div className="relative h-24 overflow-hidden">
               <Image
                 src={project.image || "/placeholder.svg"}
                 alt={project.title}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                className="object-cover"
               />
               <div
-                className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+                className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent`}
               />
-
-              <div className="absolute bottom-2 right-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                <motion.button
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-black"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <ArrowRight size={14} />
-                </motion.button>
-              </div>
             </div>
             <div className="p-3">
-              <span
-                className={`mb-1 inline-block rounded-full px-2 py-0.5 text-xs ${
-                  isDarkMode ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                {project.category}
-              </span>
-              <h4 className="font-medium">{project.title}</h4>
+              <div className="flex items-center justify-between">
+                <span
+                  className={`mb-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
+                    isDarkMode ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  {project.icon}
+                  {project.category}
+                </span>
+                <span className="text-xs opacity-60">{index + 2020}</span>
+              </div>
+              <h4 className="font-medium text-sm">{project.title}</h4>
             </div>
           </motion.div>
         ))}
       </motion.div>
 
-      <></>
+      <motion.div 
+        className={`mt-4 rounded-lg p-3 text-sm ${isDarkMode ? "bg-gray-800/60 text-gray-300" : "bg-gray-100/60 text-gray-600"}`}
+        initial={{ opacity: 0, y: 20 }} 
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <p className="text-center">Click on a card to view more details about each project</p>
+      </motion.div>
     </div>
   )
 }
