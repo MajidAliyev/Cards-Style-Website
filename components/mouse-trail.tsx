@@ -6,7 +6,6 @@ import { motion, useSpring, useTransform } from "framer-motion"
 interface MouseTrailProps {
   isDarkMode: boolean
   mousePosition: { x: number; y: number }
-  isVisible?: boolean
 }
 
 interface TrailDot {
@@ -21,7 +20,7 @@ interface TrailDot {
   createdAt: number
 }
 
-export default function MouseTrail({ isDarkMode, mousePosition, isVisible = true }: MouseTrailProps) {
+export default function MouseTrail({ isDarkMode, mousePosition }: MouseTrailProps) {
   const [mouseTrailDots, setMouseTrailDots] = useState<TrailDot[]>([])
   const lastDotTime = useRef<number>(0)
   const dotIdCounter = useRef<number>(0)
@@ -54,7 +53,7 @@ export default function MouseTrail({ isDarkMode, mousePosition, isVisible = true
     const currentMouseX = mouseX.get()
     const currentMouseY = mouseY.get()
     
-    if (isVisible && timeSinceLastDot > 40 && (currentMouseX !== 0 || currentMouseY !== 0)) {
+    if (timeSinceLastDot > 40 && (currentMouseX !== 0 || currentMouseY !== 0)) {
       const newDot: TrailDot = {
         id: dotIdCounter.current++,
         x: currentMouseX,
@@ -86,20 +85,13 @@ export default function MouseTrail({ isDarkMode, mousePosition, isVisible = true
   
   // Start and stop animation loop
   useEffect(() => {
-    if (isVisible) {
-      requestRef.current = requestAnimationFrame(animate)
-    }
+    requestRef.current = requestAnimationFrame(animate)
     return () => {
       if (requestRef.current !== null) {
         cancelAnimationFrame(requestRef.current)
       }
     }
-  }, [isDarkMode, isVisible])
-  
-  // Don't render anything if not visible
-  if (!isVisible) {
-    return null;
-  }
+  }, [isDarkMode])
   
   return (
     <div className="fixed top-0 left-0 w-full h-full pointer-events-none">
